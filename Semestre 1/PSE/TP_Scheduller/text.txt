@@ -1,0 +1,20 @@
+fifo 
+	Le Scheduller FIFO exécute les processus un par un  donc le temps d’exécution est proportionnel au nombre de processus.
+
+scheduller_FIFO exécuté en 12.022637 secondes
+
+
+RR
+	Le Scheduller RR exécute les processus par quantum de temps dons le temps d’exécution est proportionnel au nombre de processus mais aussi au quantum de temps.
+
+RR avec 50 millisecondes:
+scheduller_RR exécuté en 5.007425 secondes
+
+RR avec 50 000 millisecondes:
+scheduller_RR exécuté en 5.203219 secondes
+
+RR avec 50 000 000 millisecondes:
+scheduller_RR exécuté en 12.021714 secondes
+
+
+En conclusion on peut voire que que le RR est plus rapide que le FIFO si le quantum de temps est faible, mais il devient moins efficace lorsque le quantum est élevé.

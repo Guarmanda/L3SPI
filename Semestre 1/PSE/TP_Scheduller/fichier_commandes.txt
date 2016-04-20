@@ -1,0 +1,3 @@
+./prog_sleep A 2
+./prog_sleep B 3
+./prog_sleep C 4
