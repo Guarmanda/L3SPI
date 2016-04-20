@@ -7,7 +7,7 @@
 int nAPPEL;//nombre total d'appels associés aux règles terminales de la grammaire,ie bAlexIdentificateur(), etc
 int bAsyntAmorceR;
 int bkEclaireuR;
-int bModeSem = 0;
+int nMode = 0;
 
 int bCalcuL(int iDebut,int *piFin);
 int bEntieR(int iDebut,int *piFin);
@@ -38,7 +38,7 @@ int bCleF(int iDebut,int *piFin){
     int bSucces,iFin;
     bSucces=bEntieR(iDebut,&iFin);
     *piFin=(bSucces)? iFin:iDebut;
-    if(bModeSem && !bAlexClef(iDebut)){
+    if(nMode==asSemantique && !bAlexClef(iDebut)){
         ErreurEmpiler(eAlexReel,iDebut);
     }
     return(bSucces);
@@ -49,14 +49,14 @@ int bHorairE(int iDebut,int *piFin){
     int bSucces,iFin;
     bSucces=bReeL(iDebut,&iFin);
     *piFin=(bSucces)? iFin:iDebut;
-    if(bModeSem && !bAlexHoraire(iDebut)){
+    if(nMode==asSemantique && !bAlexHoraire(iDebut)){
         ErreurEmpiler(eSemHoraire,iDebut);
     }
     return(bSucces);
 }//bHorairE
 
 int bInstru1(int iDebut,int *piFin){
-    //Instru1->Id.Clef.Reel.Horaire
+    //Instru1->Id.Clef.Reel
     int bSucces,iFin,iMilieu,iSuivant,iSuivant2;
     bSucces=bIdentificateuR(iDebut,&iMilieu) && bCleF(iMilieu,&iSuivant) && bReeL(iSuivant,&iSuivant2) && bHorairE(iSuivant2,&iFin);
     *piFin=(bSucces)? iFin:iDebut;
@@ -95,10 +95,10 @@ int bInstruS(int iDebut,int *piFin){
     return(bSucces);
 }//bInstruS
 
-int bAsyntAnalyser(int bModeSemantique){
+int bAsyntAnalyser(int nModeB){
     Appel0("bAsyntAnalyser");
-    //printf("bModeSemantique = %d\n",bModeSemantique);
-    bModeSem = bModeSemantique;
+    //printf("nModeSemantique = %d\n",nModeSemantique);
+    nMode = nModeB;
     int bSucces = 0;
     int iFin;
     bkEclaireuR=kV;

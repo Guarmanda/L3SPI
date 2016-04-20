@@ -40,11 +40,12 @@ int bAlexClef(int uLexeme){
     int bClef = 0;
     int nClef;
     char sLexeme[knByteLiM];
+    int i;
     
     if(bAlexEntier(uLexeme)){
         CodeSourceTrancheR(lxmChainE[uLexeme].indexdebut,lxmChainE[uLexeme].indexfin,kF,sLexeme);
         sscanf(sLexeme,"%d1",&nClef);
-        for(int i=0; i<knClefMax; i++){
+        for(i=0; i<knClefMax; i++){
             if(nClef==tClef[i]){
                 bClef=1;
             }
