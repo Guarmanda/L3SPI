@@ -1,0 +1,73 @@
+//
+//  TP2-Guenver-Yann.txt
+//
+//
+//  Created by Yann Guenver
+//
+
+
+-- Question 1
+ALTER USER u-spi3059 PASSWORD 'new_password';
+
+-- Question 2
+CREATE SEQUENCE seq_pos INCREMENT 3 START 10;
+
+-- Question 3
+CREATE VIEW vehi_station AS SELECT id_vehicule,nom_station FROM vehicule NATURAL JOIN station;
+
+-- Question 4
+UPDATE position SET date=current_date WHERE date='2016-01-22';
+
+-- Question 5
+CREATE OR REPLACE FUNCTION compar(x integer, y integer)
+RETURNS RECORD AS $$
+DECLARE
+    rec RECORD;
+BEGIN
+    IF x > y THEN
+        SELECT 'min='||y||', max='||x INTO rec;
+        RETURN rec;
+    ELSEIF x < y THEN
+        SELECT 'min='||x||', max='||y INTO rec;
+        RETURN rec;
+    ELSE
+        SELECT 'equal='||y INTO rec;
+        RETURN rec;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Question 6
+-- a
+UPDATE position SET id_zone=NULL WHERE id_vehicule IN (SELECT id_vehicule FROM vehi_station WHERE nom_station='Geonosis') AND date=current_date AND th=2;
+
+-- b
+UPDATE position SET id_zone=(SELECT id_zone FROM zone WHERE nom_zone='Arkanis') WHERE id_chauffeur IN (SELECT id_chauffeur FROM chauffeur WHERE prenom='Luke') AND date=current_date AND th=2;
+
+-- c
+INSERT INTO position VALUES ((SELECT id_vehicule FROM vehicule WHERE nom_v='Starship troopers'), current_date, 2, (SELECT id_chauffeur FROM chauffeur WHERE nom='Windu'),2);
+
+-- Question 7
+CREATE OR REPLACE FUNCTION f_chauf_zone(varchar(50))
+RETURNS varchar(50) AS $$
+BEGIN
+    RETURN (SELECT nom_station FROM chauffeur NATURAL JOIN station WHERE nom = $1);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Question 8
+CREATE OR REPLACE FUNCTION f_dispo_zone(varchar(50))
+RETURNS SETOF RECORD AS $$
+BEGIN
+    RETURN query (SELECT nom_v,nom,nb_pers FROM vehicule NATURAL JOIN modele NATURAL JOIN chauffeur NATURAL JOIN station WHERE id_zone IN (SELECT id_zone FROM zone WHERE nom_zone=$1));
+END;
+$$ LANGUAGE plpgsql;
+
+-- Question 9
+
+
+
+
+
+
+

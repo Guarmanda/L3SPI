@@ -1,0 +1,220 @@
+//
+//  TP2-Guenver-Yann.txt
+//
+//
+//  Created by Yann Guenver
+//
+
+
+-- Question 1
+psql -U u_spi30XX -d bd_spi30XX -h info;
+
+-- Question 2
+DROP SCHEMA sw7 CASCADE;
+CREATE SCHEMA sw7;
+
+-- Question 3
+DROP SCHEMA Map CASCADE;
+CREATE SCHEMA Map;
+
+-- Question 4
+DROP SCHEMA public;
+SET search_path TO sw7, map, "$user";
+	  
+-- Question 5
+DROP TABLE LICENCIE CASCADE;
+DROP TABLE ZONE CASCADE;
+DROP TABLE DISTANCE CASCADE;
+DROP TABLE PERMIS CASCADE;
+DROP TABLE ENTRETIEN CASCADE;
+DROP TABLE PLEIN CASCADE;
+DROP TABLE POSITION CASCADE;
+DROP TABLE VEHICULE CASCADE;
+DROP TABLE CHAUFFEUR CASCADE;
+DROP TABLE STATION CASCADE;
+DROP TABLE MODELE CASCADE;
+
+ 
+CREATE TABLE MODELE(
+	id_modele integer PRIMARY KEY,
+	nom_modele varchar(50),
+	nb_pers integer,
+	type_carbu varchar(50),
+	cat_perm_m varchar(50),
+	type_bav varchar(50),
+	pds integer
+);
+	
+CREATE TABLE STATION(
+	id_station integer PRIMARY KEY,
+	nom_station varchar(50),
+	nom_zone varchar(50)
+);
+	
+CREATE TABLE VEHICULE(
+	id_vehicule integer PRIMARY KEY,
+	no_chassis integer,
+	nom_v varchar(50),
+	date_mes date,
+	id_station integer REFERENCES STATION (id_station),
+	id_modele integer REFERENCES MODELE (id_modele)
+);
+	
+CREATE TABLE CHAUFFEUR(
+	id_chaufeur integer PRIMARY KEY,
+	nom varchar(50),
+	prenom varchar(50),
+	adr varchar(50),
+	id_station integer REFERENCES STATION (id_station)
+);
+	
+CREATE TABLE POSITION(
+	id_vehicule integer REFERENCES VEHICULE (id_vehicule),
+	date date,
+	th integer,
+	id_chaufeur integer REFERENCES CHAUFFEUR (id_chaufeur),
+	nom_zone varchar(50),
+	PRIMARY KEY(id_vehicule, date, th)
+);
+	
+CREATE TABLE PLEIN(
+	id_vehicule integer REFERENCES VEHICULE (id_vehicule),
+	id_plein integer,
+	date_p date,
+	nb_km integer,
+	qte_carbu integer,
+	PRIMARY KEY(id_vehicule, id_plein)
+);
+	
+CREATE TABLE ENTRETIEN(
+	id_vehicule integer REFERENCES VEHICULE (id_vehicule),
+	id_entretien integer,
+	date_e date,
+	descr varchar(50),
+	PRIMARY KEY(id_vehicule, id_entretien)
+);
+
+CREATE TABLE PERMIS(
+	id_chaufeur integer REFERENCES CHAUFFEUR (id_chaufeur),
+	cat_perm_c varchar(50)
+);
+
+	
+-- Question 6
+CREATE TABLE map.DISTANCE(
+	nom_zone1 varchar(50),
+	nom_zone2 varchar(50),
+	parsec integer,
+	PRIMARY KEY(nom_zone1, nom_zone2)
+);
+
+-- Question 7
+\i ScriptsFill_BD_SW7.sql
+	  
+--Modification de la base de données
+
+-- Question 8
+--a
+SELECT DISTINCT nom_zone FROM STATION UNION SELECT DISTINCT nom_zone FROM POSITION UNION SELECT nom_zone1 as nom_zone FROM DISTANCE UNION SELECT nom_zone2 as nom_zone FROM DISTANCE;
+	
+--b
+UPDATE POSITION set nom_zone = 'Core Words' WHERE nom_zone = 'CoreWords';
+UPDATE STATION set nom_zone = 'Cadavine' WHERE nom_zone = 'caadavine';
+
+--c
+CREATE TABLE ZONE(
+	id_zone integer PRIMARY KEY,
+	nom_zone varchar(20)
+);
+
+INSERT INTO ZONE VALUES(1, 'Arkanis');
+INSERT INTO ZONE VALUES(2, 'Cadavine');
+INSERT INTO ZONE VALUES(3, 'Chommel');
+INSERT INTO ZONE VALUES(4, 'Core Words');
+INSERT INTO ZONE VALUES(5, 'Mayagil');
+INSERT INTO ZONE VALUES(6, 'Sluis');
+
+--d
+ALTER TABLE POSITION ADD COLUMN id_zone integer REFERENCES ZONE(id_zone);
+UPDATE POSITION SET id_zone = (SELECT id_zone FROM ZONE WHERE ZONE.nom_zone = POSITION.nom_zone);
+ALTER TABLE POSITION DROP COLUMN nom_zone;
+
+ALTER TABLE STATION ADD COLUMN id_zone integer REFERENCES ZONE(id_zone);
+UPDATE STATION SET id_zone = (SELECT id_zone FROM ZONE WHERE ZONE.nom_zone = STATION.nom_zone);
+ALTER TABLE STATION DROP COLUMN nom_zone;
+
+ALTER TABLE DISTANCE ADD COLUMN id_zone1 integer REFERENCES ZONE(id_zone);
+UPDATE DISTANCE SET id_zone1 = (SELECT id_zone FROM ZONE WHERE ZONE.nom_zone = DISTANCE.nom_zone1);
+ALTER TABLE DISTANCE DROP COLUMN nom_zone1;
+
+ALTER TABLE DISTANCE ADD COLUMN id_zone2 integer REFERENCES ZONE(id_zone);
+UPDATE DISTANCE SET id_zone2 = (SELECT id_zone FROM ZONE WHERE ZONE.nom_zone = DISTANCE.nom_zone2);
+ALTER TABLE DISTANCE DROP COLUMN nom_zone2;
+
+-- Question 9
+--a
+SELECT DISTINCT cat_perm_c FROM PERMIS;
+
+--b
+UPDATE PERMIS SET cat_perm_c = 'CC' WHERE cat_perm_c = 'cc';
+
+--c
+ALTER TABLE PERMIS RENAME TO LICENCIE;
+
+--d
+ALTER TABLE LICENCIE ADD CHECK(cat_perm_c in ('CC', 'CL', 'GP', 'SC', 'ZR')); 
+ALTER TABLE MODELE ADD CHECK(cat_perm_m in ('CC', 'CL', 'GP', 'SC', 'ZR'));
+
+-- Question 10
+--a
+ALTER TABLE PLEIN ADD COLUMN type_carbu varchar(30);
+
+--b
+UPDATE PLEIN SET type_carbu = (SELECT type_carbu FROM MODELE WHERE id_modele = (SELECT id_modele FROM VEHICULE WHERE id_vehicule = PLEIN.id_vehicule));
+
+-- Question 11
+SELECT nom, prenom, id_chaufeur FROM CHAUFFEUR WHERE id_station = (SELECT id_station FROM STATION WHERE nom_station = 'Geonosis');
+--    nom    | prenom | id_chaufeur 
+-------------+--------+-------------
+-- Organa    | Leia   |         211
+-- Skywalker | Luke   |         310
+-- Windu     | Mace   |         411
+-- Dark      | Sidius |         511
+
+-- Question 12
+SELECT nom_v FROM VEHICULE WHERE id_vehicule = (SELECT id_vehicule FROM POSITION WHERE date between '1977-05-25' AND '2016-01-22' AND id_chaufeur = (SELECT id_chaufeur FROM CHAUFFEUR WHERE nom = 'Skywalker' AND prenom = 'ANAKIN'));
+-- nom_v 
+---------
+--(0 rows)
+
+-- Question 13
+SELECT nom, prenom FROM CHAUFFEUR WHERE id_station = (SELECT id_station FROM STATION WHERE nom_station = 'Arkanis') AND id_station = (SELECT id_station FROM VEHICULE WHERE nom_v = 'Faucon millenium');
+-- nom | prenom 
+-------+--------
+--(0 rows)
+
+-- Question 14
+SELECT no_chassis FROM VEHICULE WHERE id_vehicule = (SELECT id_vehicule FROM ENTRETIEN WHERE date_e between '2014-1-1' AND '2014-12-31');
+-- no_chassis 
+--------------
+--     100005
+--(1 row)
+
+-- Question 15
+SELECT DISTINCT nom_v FROM VEHICULE NATURAL JOIN MODELE NATURAL JOIN PLEIN WHERE  nom_modele = 'cargo YT-300' AND date_p between (current_date - integer '124') AND current_date;
+-- nom_v 
+---------
+--(0 rows)
+
+-- Question 16
+SELECT nom_modele,((sum(qte_carbu)*100)/sum(nb_km)) as conso_moy FROM VEHICULE NATURAL JOIN PLEIN NATURAL JOIN MODELE GROUP BY MODELE.nom_modele HAVING nom_modele = 'voilier solaire geonosien';
+--        nom_modele         | conso_moy 
+-----------------------------+-----------
+-- voilier solaire geonosien |        22
+--(1 row)
+
+
+-- Question 17
+SELECT DISTINCT nom_zone FROM ZONE NATURAL JOIN DISTANCE NATURAL JOIN STATION WHERE parsec<10 AND nom_station = 'Coruscant';
+
+
