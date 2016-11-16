@@ -13,43 +13,38 @@
 #define CORBEILLE "/dev/null"
 
 
-int CompareIntBis(const int *a, const int *b){
-	if (*a<*b)
-		return -1;
-	if (*a>*b)
-		return 1;
-	return 0;
-}
-
 int CompareInt(const void *a1, const void *b1){
 	const int * a2 = a1;
 	const int * b2 = b1;
-	return CompareIntBis(a2, b2);
+	return *a2-*b2;
 }
 
 
 int main(int argc, char *argv[]){
 
 	if(argc != NB_ARGUMENTS){
-		printf("\n\nUsage : %s <K> <commande> <nb_processus>\n\n",argv[0]);
+		printf("\n\nUsage : %s <nb_execution> <commande> <nb_processus>\n\n",argv[0]);
 		exit(ERROR);
 	}
+	
+	printf("\n -- Debut du programme --\n");
 
 	// Récupération des arguments
-	int K=atoi(argv[1]); // Nombre de fois que la commande est executee par un processus
+	int K=atoi(argv[1]); 					// Nombre de fois que la commande est executee par un processus
 	char commande[MAX_SIZE_COMMAND];
-	strcpy(commande, argv[2]); // Commande executée par le(s) processus
-	int nb_proc=atoi(argv[3]); // Nombre de processus executant la commande
+	strcpy(commande, argv[2]); 				// Commande executée par le(s) processus
+	int nb_proc=atoi(argv[3]); 				// Nombre de processus executant la commande
 
 	// Variables
-	struct timeval timevalDebut, timevalFin;
+	struct timeval timevalDebut, timevalFin;// Structure timeval
 	int cr;
-	float tab[nb_proc];
-	int cptProcessus, cptExecutions;
-	float Mi=0; // Temps d'execution moyen d'une commande
-	float Ti=0; // Temps d'execution d'un processus
+	float tab[nb_proc];						// Tableau des temps moyen d'execution de chaque processus
+	int cptProcessus, cptExecutions;		// Compteur de processus fils et d'execution de la commande
+	float Mi=0; 							// Temps d'execution moyen d'une commande
+	float Ti=0; 							// Temps d'execution d'un processus
 	int tube[2];
 	int output, fd;
+
 
 	// Initialisation de tab à 0
 	for(cptProcessus=0; cptProcessus<nb_proc; cptProcessus++){
@@ -58,6 +53,7 @@ int main(int argc, char *argv[]){
 
 	pipe(tube);
 
+	// Création des processus
 	for(cptProcessus=0; cptProcessus<nb_proc; cptProcessus++)
 		switch(fork()){
 			case ERROR: // Erreur fork
@@ -113,7 +109,6 @@ int main(int argc, char *argv[]){
 								fprintf(stderr, "\n\n%s interrompue par exit %d\n\n", commande, WEXITSTATUS(cr));
 								exit(ERROR);
 							}
-
 						if(WIFSIGNALED(cr)){
 							fprintf(stderr, "\n\n%s interrompue par le signal %d\n\n", commande, WTERMSIG(cr));
 							exit(ERROR);
@@ -138,17 +133,25 @@ int main(int argc, char *argv[]){
 		read(tube[0], &tab[cptProcessus], sizeof(float));
 	}
 	close(tube[0]);
-
-	// Tri du tableau tab
-	qsort(tab, nb_proc, sizeof(float), CompareInt);
-
-	// Affichage du resultat
-	output = nb_proc/2;
-	if(tab[output] !=0){
-		printf("\n\nTemps moyen d'execution de %d fois la commande %s est de %f ms\n\n", K, commande, tab[output]);
-		exit(0);
+	
+	if (tab[0] != 0){ // Test de la validitée des temps reçu 
+		// Tri du tableau tab
+		qsort(tab, nb_proc, sizeof(float), CompareInt);
+	
+		for(cptProcessus=0; cptProcessus<nb_proc; cptProcessus++){
+			printf("\nProcessus %i --> Temps moyen d'execution de %d fois la commande \"%s\" est de %f ms", cptProcessus+1, K, commande, tab[cptProcessus]);
+		}
+	
+		// Affichage du resultat
+		output = nb_proc/2;
+		if(tab[output] !=0){
+			printf("\n\n -- Temps moyen d'execution de %d fois la commande \"%s\" par %i processus est de %f ms --\n\n", K, commande, nb_proc, tab[output]);
+			exit(0);
+		}
+	}else{
+		printf("\n\tUne erreur est survenu dans l'execution d'un processus.\n");
+		
 	}
-
-	fprintf(stderr, "\nErreur\n");
-	exit(ERROR);
+	
+	return EXIT_SUCCESS;
 }
