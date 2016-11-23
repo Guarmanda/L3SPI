@@ -14,6 +14,8 @@
 #endif
 #include <pipe_messages.h>
 
+#define TUBE_NOMME "tube_tp_5"
+
 int
 main( int nb_arg , char * tab_arg[])
 {
