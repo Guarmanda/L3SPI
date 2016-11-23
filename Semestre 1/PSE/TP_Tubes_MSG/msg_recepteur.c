@@ -17,6 +17,15 @@ int
 main( int nb_arg , char * tab_arg[] )
 {     
      char nomprog[128] ;
+     int file_id;
+
+    int i;
+
+    message_t reponse;
+
+    struct timeval temps ;
+    double temps_debut;
+    double temps_fin;
 
      /*-----*/
 
@@ -28,9 +37,41 @@ main( int nb_arg , char * tab_arg[] )
        }
      strcpy( nomprog , tab_arg[0] );
 
-     /*=============================*/
-     /*           A FAIRE           */
-     /*=============================*/
+     /* Recherche de la file de messages */
+    if( (file_id = msgget ( CLE_BAL , 0 ) ) == -1 )
+    {
+        perror(" Probleme durant la recherche de la file");
+        exit(-2);
+    }
+
+    printf( "\n---------- Debut reception %s ----------\n" , nomprog ) ;
+
+    /* Recuperation de l'heure actuelle avec precision de l’ordre de la microseconde */
+    gettimeofday(&temps, NULL);
+    temps_debut = temps.tv_sec+(temps.tv_usec/1000000.0);
+
+
+    /* Reception des MESSAGES_NB messages dans la file de messages */	
+    for(i=0; i<MESSAGES_NB; i++)
+    {
+        if( msgrcv(file_id, &reponse, sizeof(message_t), MSG_TYPE_RECEPTEUR, 0) == -1)
+        {
+            perror("Erreur durant la reception du message");
+            exit(-3);
+        }
+    }
+
+    /* Recuperation de l'heure actuelle avec precision de l’ordre de la microseconde */
+    gettimeofday(&temps, NULL);
+    temps_fin = temps.tv_sec+(temps.tv_usec/1000000.0);
+
+    fprintf(stderr, "\nTemps de reception           =  %.6lf secondes", temps_fin - temps_debut);
+    fprintf(stderr, "\nTemps de reception / message =  %.6lf secondes\n", (temps_fin - temps_debut) / MESSAGES_NB);
+    fprintf(stderr, "\n----------- Fin reception %s -----------\n\n" , nomprog ) ;
+
+    fprintf(stderr, "=== Affichage message : =======================\n");
+    msg_afficher( &reponse );
+    fprintf(stderr, "===============================================\n\n");
 
      
      exit(0);
