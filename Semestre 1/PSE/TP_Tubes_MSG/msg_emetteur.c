@@ -12,6 +12,15 @@ int
 main( int nb_arg , char * tab_arg[] )
 {     
      char nomprog[128] ;
+     int file_id = 0;
+
+    int i;
+
+    message_t message;
+
+    struct timeval temps ;
+    double temps_debut;
+    double temps_fin;
 
      /*-----*/
 
@@ -23,9 +32,46 @@ main( int nb_arg , char * tab_arg[] )
        }
      strcpy( nomprog , tab_arg[0] );
 
-     /*=============================*/
-     /*           A FAIRE           */
-     /*=============================*/
+     /* Creation de la file de messages */
+    if( ( file_id = msgget( CLE_BAL, IPC_CREAT | IPC_EXCL | 0666 )) == -1 )
+    {
+        perror("Probleme durant la creation de la file de messages");
+        exit(-2);
+    }
+
+
+    /* Creation du message a envoyer */
+    message.type = MSG_TYPE_RECEPTEUR;
+
+
+    fprintf(stderr,  "\n---------- Debut emission %s ----------\n" , nomprog ) ;
+
+    /* Recuperation de l'heure actuelle avec precision de l’ordre de la microseconde */
+    gettimeofday(&temps, NULL);
+    temps_debut = temps.tv_sec+(temps.tv_usec/1000000.0);
+
+
+    /* Remplissage du message avec des Z */
+    msg_remplir( &message , 'Z') ;
+
+
+    /* Envoi de MESSAGES_NB messages dans la file de messages  */
+    for(i=0; i<MESSAGES_NB; i++)
+    {
+        if( msgsnd( file_id, &message, sizeof(corps_t), 0) == -1)
+        {
+            perror ("Erreur durant l'envoi du message");
+            exit(-3);
+        }
+    }
+
+    /* Recuperation de l'heure actuelle avec precision de l’ordre de la microseconde */
+    gettimeofday(&temps, NULL);
+    temps_fin = temps.tv_sec+(temps.tv_usec/1000000.0);
+
+    fprintf(stderr, "\nTemps d'emission           =  %.6lf secondes", temps_fin - temps_debut);
+    fprintf(stderr, "\nTemps d'emission / message =  %.6lf secondes\n", (temps_fin - temps_debut) / MESSAGES_NB);
+    fprintf(stderr, "\n----------- Fin emission %s -----------\n\n" , nomprog ) ;
 
      exit(0);
 }
