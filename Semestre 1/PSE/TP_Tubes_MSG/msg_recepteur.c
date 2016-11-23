@@ -13,6 +13,8 @@
 
 #include <msg_messages.h>
 
+#define CLE_BAL 42
+
 int 
 main( int nb_arg , char * tab_arg[] )
 {     
